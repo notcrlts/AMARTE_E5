@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/txtTituloDialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nueva Tarea"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#212529"
+            android:layout_marginBottom="16dp"/>
+
+        <EditText
+            android:id="@+id/txteNomAct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre de la tarea"
+            android:textColor="#212529"
+            android:textColorHint="#6C757D"
+            android:layout_marginBottom="12dp"/>
+
+        <EditText
+            android:id="@+id/txteDescripAct"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Descripción"
+            android:textColor="#212529"
+            android:textColorHint="#6C757D"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- FECHA CON DATE PICKER -->
+        <EditText
+            android:id="@+id/txteFechaEnt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Fecha de entrega (Selecciona)"
+            android:focusable="false"
+            android:clickable="true"
+            android:textColor="#212529"
+            android:textColorHint="#6C757D"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- PRIORIDAD CON MENÚ DESPLEGABLE CORREGIDO -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxBackgroundColor="#FFFFFF"
+            app:boxBackgroundMode="outline"
+            app:boxStrokeColor="#6C757D">
+
+            <AutoCompleteTextView
+                android:id="@+id/txtePrioridad"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Selecciona Prioridad"
+                android:inputType="none"
+                android:textColor="#212529" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- SECCIÓN DE PASOS DINÁMICOS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pasos de la Tarea"
+            android:textStyle="bold"
+            android:textColor="#212529"
+            android:textSize="15sp"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <EditText
+                android:id="@+id/txtePaso"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Escribe un paso..."
+                android:textColor="#212529"
+                android:textColorHint="#6C757D"/>
+
+            <Button
+                android:id="@+id/btnAgregarPaso"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Agregar"
+                android:backgroundTint="#212529"
+                android:textColor="#FFFFFF"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutPasosContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/btnGuardarTarea"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guardar Tarea"
+            android:backgroundTint="#212529"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/txtTitulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Crear Cuenta"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#212121"
+        android:layout_marginBottom="32dp"/>
+
+    <EditText
+        android:id="@+id/txteUsuario"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nombre de Usuario"
+        android:inputType="text"
+        android:textColor="#212121"
+        android:textColorHint="#757575"
+        android:backgroundTint="#757575"
+        android:layout_marginBottom="12dp"
+        android:padding="12dp"/>
+
+    <EditText
+        android:id="@+id/txteNombre"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nombre Completo"
+        android:inputType="textPersonName"
+        android:textColor="#212121"
+        android:textColorHint="#757575"
+        android:backgroundTint="#757575"
+        android:layout_marginBottom="12dp"
+        android:padding="12dp"/>
+
+    <EditText
+        android:id="@+id/txteCorreo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Correo Electrónico"
+        android:inputType="textEmailAddress"
+        android:textColor="#212121"
+        android:textColorHint="#757575"
+        android:backgroundTint="#757575"
+        android:layout_marginBottom="12dp"
+        android:padding="12dp"/>
+
+    <EditText
+        android:id="@+id/txtpPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Contraseña"
+        android:inputType="textPassword"
+        android:textColor="#212121"
+        android:textColorHint="#757575"
+        android:backgroundTint="#757575"
+        android:layout_marginBottom="28dp"
+        android:padding="12dp"/>
+
+    <Button
+        android:id="@+id/btnRegistrar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="Registrarse"
+        android:backgroundTint="#212121"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+
+</LinearLayout>

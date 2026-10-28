@@ -1,28 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!--- Colores azules-->
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="azul1">#43869F</color>
-    <color name="azul2">#4E8EA5</color>
-    <color name="azul3">#5A95AB</color>
-    <color name="azul4">#659DB1</color>
-    <color name="azul5">#70A4B8</color>
-    <color name="azul6">#7BACBE</color>
-    <color name="azul7">#87B3C4</color>
-    <color name="azul8">#92BBCA</color>
-    <color name="azul9">#9DC2D0</color>
+    <color name="blue_43869F">#43869F</color>
+    <color name="blue_4E8EA5">#4E8EA5</color>
+    <color name="blue_5A95AB">#5A95AB</color>
+    <color name="blue_659DB1">#659DB1</color>
+    <color name="blue_70A4B8">#70A4B8</color>
+    <color name="blue_7BACBE">#7BACBE</color>
+    <color name="blue_87B3C4">#87B3C4</color>
+    <color name="blue_92BBCA">#92BBCA</color>
+    <color name="blue_9DC2D0">#9DC2D0</color>
 
-    <!--- Colores VERDES-->
-    <color name="verde1">#43869F</color>
-    <color name="verde2">#4E8EA5</color>
-    <color name="verde3">#5A95AB</color>
-    <color name="verde4">#659DB1</color>
-    <color name="verde5">#70A4B8</color>
-    <color name="verde6">#7BACBE</color>
-    <color name="verde7">#87B3C4</color>
-    <color name="verde8">#92BBCA</color>
-    <color name="verde9">#9DC2D0</color>
-
+    <color name="green_606F49">#606F49</color>
+    <color name="green_728359">#728359</color>
+    <color name="green_849669">#849669</color>
+    <color name="green_97A97C">#97A97C</color>
+    <color name="green_A6B98B">#A6B98B</color>
+    <color name="green_B5C99A">#B5C99A</color>
+    <color name="green_C2D5AA">#C2D5AA</color>
+    <color name="green_CFE1B9">#CFE1B9</color>
+    <color name="green_DCEBCA">#DCEBCA</color>
 </resources>

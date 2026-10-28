@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F3F4F6"
+    android:fillViewport="true"
+    android:clipToPadding="false"
+    android:paddingBottom="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- ENCABEZADO DEL PERFIL -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="20dp"
+            android:background="#FFFFFF">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imgvFotoPerfil"
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:src="@drawable/ic_launcher_background"
+                android:scaleType="centerCrop"
+                android:contentDescription="Foto de perfil"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                app:strokeColor="#343A40"
+                app:strokeWidth="2dp" />
+
+            <TextView
+                android:id="@+id/txtUsernameHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Estudiante"
+                android:textColor="#202124"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/txtCorreoPerfil"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="correo@ejemplo.com"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:gravity="center" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCambiarFoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Cambiar foto"
+                android:textColor="#FFFFFF"
+                app:backgroundTint="#343A40"
+                app:cornerRadius="12dp" />
+
+        </LinearLayout>
+
+        <!-- INFORMACIÓN PERSONAL -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"
+            android:text="Información personal"
+            android:textColor="#202124"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="#FFFFFF">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nombre completo"
+                android:textColor="#444444"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etNombrePerfil"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombre completo"
+                android:inputType="textCapWords"
+                android:enabled="false"
+                android:singleLine="true"
+                android:textColor="#202124"
+                android:textColorHint="#888888" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Usuario"
+                android:textColor="#444444"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etUsuarioPerfil"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombre de usuario"
+                android:inputType="text"
+                android:enabled="false"
+                android:singleLine="true"
+                android:textColor="#202124"
+                android:textColorHint="#888888" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Correo electrónico"
+                android:textColor="#444444"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etCorreoPerfil"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="correo@ejemplo.com"
+                android:inputType="textEmailAddress"
+                android:enabled="false"
+                android:singleLine="true"
+                android:textColor="#202124"
+                android:textColorHint="#888888" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditarPerfil"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Editar perfil"
+                android:textColor="#FFFFFF"
+                app:backgroundTint="#343A40"
+                app:cornerRadius="12dp" />
+
+        </LinearLayout>
+
+        <!-- HORARIO SEMANAL -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="Mi horario semanal"
+            android:textColor="#202124"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="Desliza la tabla horizontalmente para consultar todos los días. Toca una materia para ver sus detalles."
+            android:textColor="#666666"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:background="#FFFFFF">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Agregar una clase"
+                android:textColor="#202124"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etMateriaHorario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nombre de la materia"
+                android:inputType="textCapSentences"
+                android:singleLine="true"
+                android:textColor="#202124"
+                android:textColorHint="#888888" />
+
+            <EditText
+                android:id="@+id/etSalonHorario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Salón (ej. B-204)"
+                android:inputType="textCapCharacters"
+                android:singleLine="true"
+                android:textColor="#202124"
+                android:textColorHint="#888888" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Día de la semana"
+                android:textColor="#444444"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/spDiaHorario"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:spinnerMode="dropdown" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHoraInicio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Hora de inicio"
+                android:textColor="#FFFFFF"
+                app:backgroundTint="#343A40"
+                app:cornerRadius="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHoraFin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Hora de fin"
+                android:textColor="#FFFFFF"
+                app:backgroundTint="#343A40"
+                app:cornerRadius="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAgregarClase"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Agregar clase"
+                android:textColor="#FFFFFF"
+                app:backgroundTint="#343A40"
+                app:cornerRadius="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAdministrarClases"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Administrar clases"
+                android:textColor="#FFFFFF"
+                app:backgroundTint="#343A40"
+                app:cornerRadius="12dp" />
+
+        </LinearLayout>
+
+        <!-- TABLA -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:text="Tabla de clases"
+            android:textColor="#202124"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/contenedorClases"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:padding="4dp" />
+
+        <!-- CERRAR SESIÓN -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCerrarSesion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="16dp"
+            android:text="Cerrar sesión"
+            android:textColor="#FFFFFF"
+            app:backgroundTint="#343A40"
+            app:cornerRadius="12dp" />
+
+    </LinearLayout>
+
+</ScrollView>
