@@ -33,7 +33,15 @@ public class RecordatoriosReceiver extends BroadcastReceiver {
         }
 
         Usuario.crearCanalNotificaciones(context);
-
+        if ("prueba".equals(tipo)) {
+            mostrarNotificacion(
+                    context,
+                    987654,
+                    "Prueba de alarma",
+                    "El recordatorio programado está funcionando."
+            );
+            return;
+        }
         DatabaseHelper db = new DatabaseHelper(context);
 
         try {

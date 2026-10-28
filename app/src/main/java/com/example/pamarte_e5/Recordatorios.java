@@ -235,4 +235,41 @@ public class Recordatorios {
                 pendingIntent
         );
     }
+    public static boolean programarPrueba(Context contexto) {
+        Intent intent = new Intent(
+                contexto,
+                RecordatoriosReceiver.class
+        );
+
+        intent.putExtra("tipo", "prueba");
+        intent.putExtra("idEstudiante", "prueba");
+
+        PendingIntent pendiente = PendingIntent.getBroadcast(
+                contexto,
+                987654,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+                        | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        AlarmManager alarmManager = (AlarmManager)
+                contexto.getSystemService(Context.ALARM_SERVICE);
+
+        if (alarmManager == null) {
+            return false;
+        }
+
+        try {
+            alarmManager.setAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    System.currentTimeMillis() + 60_000L,
+                    pendiente
+            );
+
+            return true;
+
+        } catch (SecurityException e) {
+            return false;
+        }
+    }
 }
