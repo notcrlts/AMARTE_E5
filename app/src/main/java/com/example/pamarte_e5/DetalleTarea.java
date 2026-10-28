@@ -1,6 +1,7 @@
 
 package com.example.pamarte_e5;
 
+import android.app.AlertDialog;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -37,9 +38,9 @@ public class DetalleTarea extends AppCompatActivity {
 
     private Button btnEditarTarea;
     private Button btnGuardarCambios;
+    private Button btnEliminarTarea;
 
     private LinearLayout layoutPasosContainer;
-
     private CheckBox chkTareaCompletada;
 
     private DatabaseHelper dbHelper;
@@ -80,7 +81,6 @@ public class DetalleTarea extends AppCompatActivity {
         dbHelper = new DatabaseHelper(this);
         idAct = getIntent().getStringExtra("id_act");
 
-        // Vincular vistas de lectura.
         txtNomActDetalle = findViewById(R.id.txtNomActDetalle);
         txtDescDetalle = findViewById(R.id.txtDescDetalle);
         txtPrioridadDetalle = findViewById(R.id.txtPrioridadDetalle);
@@ -88,17 +88,16 @@ public class DetalleTarea extends AppCompatActivity {
 
         chkTareaCompletada = findViewById(R.id.chkTareaCompletada);
 
-        // Vincular vistas de edición.
         etNomActDetalle = findViewById(R.id.etNomActDetalle);
         etDescActDetalle = findViewById(R.id.etDescDetalle);
         spinnerPrioridad = findViewById(R.id.spinnerPrioridad);
 
-        // Botones y contenedor de pasos.
         btnEditarTarea = findViewById(R.id.btnEditarTarea);
         btnGuardarCambios = findViewById(R.id.btnGuardarCambios);
+        btnEliminarTarea = findViewById(R.id.btnEliminarTarea);
+
         layoutPasosContainer = findViewById(R.id.layoutPasosContainer);
 
-        // Configurar prioridades.
         String[] prioridades = {"ALTA", "MEDIA", "BAJA"};
 
         ArrayAdapter<String> adapterPrioridad = new ArrayAdapter<>(
@@ -124,10 +123,7 @@ public class DetalleTarea extends AppCompatActivity {
             return;
         }
 
-        // Cargar primero el estado guardado y los datos.
-        boolean tareaCargada = cargarDatosTarea();
-
-        if (!tareaCargada) {
+        if (!cargarDatosTarea()) {
             Toast.makeText(
                     this,
                     "No se encontró la tarea en la base de datos",
@@ -138,7 +134,6 @@ public class DetalleTarea extends AppCompatActivity {
             return;
         }
 
-        // Guardar el estado general de la tarea.
         chkTareaCompletada.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> {
 
@@ -178,89 +173,138 @@ public class DetalleTarea extends AppCompatActivity {
                 }
         );
 
-        // Botón Editar / Cancelar.
         btnEditarTarea.setOnClickListener(v -> {
-
             esModoEdicion = !esModoEdicion;
             setModoEdicion(esModoEdicion);
-
         });
 
-        // Guardar cambios de nombre, descripción y prioridad.
-        btnGuardarCambios.setOnClickListener(v -> {
+        btnGuardarCambios.setOnClickListener(v -> guardarCambios());
 
-            String nuevoNombre = etNomActDetalle
-                    .getText().toString().trim();
+        btnEliminarTarea.setOnClickListener(v -> confirmarEliminacion());
+    }
 
-            String nuevaDescripcion = etDescActDetalle
-                    .getText().toString().trim();
+    private void guardarCambios() {
 
-            Object prioridadSeleccionada =
-                    spinnerPrioridad.getSelectedItem();
+        String nuevoNombre = etNomActDetalle
+                .getText().toString().trim();
 
-            if (prioridadSeleccionada == null) {
-                Toast.makeText(
-                        this,
-                        "Selecciona una prioridad",
-                        Toast.LENGTH_SHORT
-                ).show();
+        String nuevaDescripcion = etDescActDetalle
+                .getText().toString().trim();
 
-                return;
-            }
+        Object prioridadSeleccionada =
+                spinnerPrioridad.getSelectedItem();
 
-            String nuevaPrioridad =
-                    prioridadSeleccionada.toString();
+        if (prioridadSeleccionada == null) {
+            Toast.makeText(
+                    this,
+                    "Selecciona una prioridad",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
 
-            if (nuevoNombre.isEmpty()) {
-                Toast.makeText(
-                        this,
-                        "El nombre no puede estar vacío",
-                        Toast.LENGTH_SHORT
-                ).show();
+        String nuevaPrioridad = prioridadSeleccionada.toString();
 
-                return;
-            }
+        if (nuevoNombre.isEmpty()) {
+            Toast.makeText(
+                    this,
+                    "El nombre no puede estar vacío",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
 
-            boolean actualizado = dbHelper.actualizarDatosTarea(
-                    idAct,
-                    nuevoNombre,
-                    nuevaDescripcion,
-                    nuevaPrioridad
+        boolean actualizado = dbHelper.actualizarDatosTarea(
+                idAct,
+                nuevoNombre,
+                nuevaDescripcion,
+                nuevaPrioridad
+        );
+
+        if (actualizado) {
+
+            txtNomActDetalle.setText(nuevoNombre);
+
+            txtDescDetalle.setText(
+                    nuevaDescripcion.isEmpty()
+                            ? "Sin descripción"
+                            : nuevaDescripcion
             );
 
-            if (actualizado) {
+            txtPrioridadDetalle.setText(
+                    "Prioridad: " + nuevaPrioridad
+            );
 
-                txtNomActDetalle.setText(nuevoNombre);
+            esModoEdicion = false;
+            setModoEdicion(false);
 
-                txtDescDetalle.setText(
-                        nuevaDescripcion.isEmpty()
-                                ? "Sin descripción"
-                                : nuevaDescripcion
-                );
+            setResult(RESULT_OK);
 
-                txtPrioridadDetalle.setText(
-                        "Prioridad: " + nuevaPrioridad
-                );
+            Toast.makeText(
+                    this,
+                    "Cambios guardados correctamente",
+                    Toast.LENGTH_SHORT
+            ).show();
 
-                esModoEdicion = false;
-                setModoEdicion(false);
+        } else {
+            String error = dbHelper.obtenerUltimoError();
 
-                setResult(RESULT_OK);
+            Toast.makeText(
+                    this,
+                    error.isEmpty()
+                            ? "No se pudieron guardar los cambios"
+                            : error,
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
 
-                Toast.makeText(
-                        this,
-                        "Cambios guardados correctamente",
-                        Toast.LENGTH_SHORT
-                ).show();
+    private void confirmarEliminacion() {
 
-            } else {
-                Toast.makeText(
-                        this,
-                        "No se pudieron guardar los cambios",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
-        });
+        new AlertDialog.Builder(this)
+                .setTitle("Eliminar tarea")
+                .setMessage(
+                        "¿Seguro que quieres eliminar esta tarea? " +
+                                "Esta acción no se puede deshacer."
+                )
+                .setNegativeButton(
+                        "Cancelar",
+                        (dialog, which) -> dialog.dismiss()
+                )
+                .setPositiveButton(
+                        "Eliminar",
+                        (dialog, which) -> eliminarTarea()
+                )
+                .show();
+    }
+
+    private void eliminarTarea() {
+
+        boolean eliminada = dbHelper.eliminarTarea(idAct);
+
+        if (eliminada) {
+
+            Toast.makeText(
+                    this,
+                    "Tarea eliminada correctamente",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            setResult(RESULT_OK);
+            finish();
+
+        } else {
+
+            String error = dbHelper.obtenerUltimoError();
+
+            Toast.makeText(
+                    this,
+                    error.isEmpty()
+                            ? "No se pudo eliminar la tarea"
+                            : error,
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     private boolean cargarDatosTarea() {
@@ -308,22 +352,15 @@ public class DetalleTarea extends AppCompatActivity {
                             : descripcion
             );
 
-            txtPrioridadDetalle.setText(
-                    "Prioridad: " + prioridad
-            );
-
+            txtPrioridadDetalle.setText("Prioridad: " + prioridad);
             txtFechaDetalle.setText(fechaEntrega);
 
-            // Restaurar el estado guardado sin activar el listener.
             actualizandoEstado = true;
             chkTareaCompletada.setChecked(estadoCompletado == 1);
             actualizandoEstado = false;
 
-            // Seleccionar la prioridad actual.
             for (int i = 0; i < spinnerPrioridad.getCount(); i++) {
-
-                if (spinnerPrioridad
-                        .getItemAtPosition(i)
+                if (spinnerPrioridad.getItemAtPosition(i)
                         .toString()
                         .equalsIgnoreCase(prioridad)) {
 
@@ -337,7 +374,6 @@ public class DetalleTarea extends AppCompatActivity {
             return true;
 
         } catch (Exception e) {
-
             Toast.makeText(
                     this,
                     "Error al cargar la tarea: " + e.getMessage(),
@@ -353,7 +389,6 @@ public class DetalleTarea extends AppCompatActivity {
         layoutPasosContainer.removeAllViews();
 
         if (pasosJson == null || pasosJson.trim().isEmpty()) {
-
             TextView tv = new TextView(this);
             tv.setText("No hay pasos registrados para esta actividad.");
             tv.setTextColor(0xFF495057);
@@ -363,7 +398,6 @@ public class DetalleTarea extends AppCompatActivity {
         }
 
         try {
-
             JSONArray jsonArray = new JSONArray(pasosJson);
 
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -388,7 +422,6 @@ public class DetalleTarea extends AppCompatActivity {
                         getColorStateList(android.R.color.black)
                 );
 
-                // Establecer el estado antes de agregar el listener.
                 checkBox.setChecked(completado);
 
                 final int indice = i;
@@ -405,7 +438,6 @@ public class DetalleTarea extends AppCompatActivity {
             }
 
         } catch (Exception e) {
-
             TextView tv = new TextView(this);
             tv.setText("No se pudieron cargar los pasos de la tarea.");
             tv.setTextColor(0xFF212529);
@@ -444,7 +476,6 @@ public class DetalleTarea extends AppCompatActivity {
             }
 
             JSONObject pasoObj = jsonArray.getJSONObject(indice);
-
             pasoObj.put("completado", completado);
 
             boolean actualizado = dbHelper.actualizarPasosTarea(
@@ -463,7 +494,6 @@ public class DetalleTarea extends AppCompatActivity {
             }
 
         } catch (Exception e) {
-
             Toast.makeText(
                     this,
                     "Error al guardar el paso",
@@ -480,8 +510,7 @@ public class DetalleTarea extends AppCompatActivity {
                     txtNomActDetalle.getText().toString()
             );
 
-            String descripcion =
-                    txtDescDetalle.getText().toString();
+            String descripcion = txtDescDetalle.getText().toString();
 
             etDescActDetalle.setText(
                     descripcion.equals("Sin descripción")

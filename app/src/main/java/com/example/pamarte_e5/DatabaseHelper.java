@@ -45,7 +45,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "status TEXT DEFAULT 'ACTIVO' " +
                         "CHECK(status IN ('ACTIVO', 'INACTIVO'))," +
                         "horario TEXT," +
-                        "pendientes INTEGER DEFAULT 0, " +
+                        "pendientes INTEGER DEFAULT 0," +
                         "foto_perfil TEXT" +
                         ");";
 
@@ -78,26 +78,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int newVersion) {
 
         if (oldVersion < 5) {
-            Cursor cursor = db.rawQuery(
-                    "PRAGMA table_info(actividades)",
-                    null
-            );
 
             boolean existeCompletado = false;
 
-            try {
-                int columnaNombre = cursor.getColumnIndexOrThrow("name");
+            try (Cursor cursor = db.rawQuery(
+                    "PRAGMA table_info(actividades)",
+                    null
+            )) {
+
+                int columnaNombre =
+                        cursor.getColumnIndexOrThrow("name");
 
                 while (cursor.moveToNext()) {
-                    String nombreColumna = cursor.getString(columnaNombre);
+
+                    String nombreColumna =
+                            cursor.getString(columnaNombre);
 
                     if ("completado".equals(nombreColumna)) {
                         existeCompletado = true;
                         break;
                     }
                 }
-            } finally {
-                cursor.close();
             }
 
             if (!existeCompletado) {
@@ -108,19 +109,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 );
             }
         }
+
         if (oldVersion < 6) {
 
-            // Verificar si existe la columna foto_perfil.
             boolean existeFoto = false;
 
             try (Cursor cursor = db.rawQuery(
-                    "PRAGMA table_info(estudiante)", null)) {
+                    "PRAGMA table_info(estudiante)",
+                    null
+            )) {
 
                 int indiceNombre = cursor.getColumnIndex("name");
 
                 while (cursor.moveToNext()) {
+
                     if ("foto_perfil".equals(
                             cursor.getString(indiceNombre))) {
+
                         existeFoto = true;
                         break;
                     }
@@ -132,7 +137,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "ALTER TABLE estudiante ADD COLUMN foto_perfil TEXT"
                 );
             }
-
         }
     }
 
@@ -146,7 +150,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         try (Cursor cursor = db.rawQuery(
                 "SELECT 1 FROM estudiante WHERE id_estudiante = ?",
-                new String[]{idEstudiante.trim()})) {
+                new String[]{idEstudiante.trim()}
+        )) {
 
             return cursor.moveToFirst();
 
@@ -209,7 +214,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "SELECT id_estudiante FROM estudiante " +
                         "WHERE correo = ? AND passw = ? " +
                         "AND status = 'ACTIVO'",
-                new String[]{correo, passw})) {
+                new String[]{correo, passw}
+        )) {
 
             if (cursor.moveToFirst()) {
                 return cursor.getString(0);
@@ -245,7 +251,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         try (Cursor cursor = db.rawQuery(
                 "SELECT 1 FROM estudiante WHERE id_estudiante = ?",
-                new String[]{idEstudiante})) {
+                new String[]{idEstudiante}
+        )) {
 
             if (!cursor.moveToFirst()) {
                 ultimoError = "El ID '" + idEstudiante
@@ -309,7 +316,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     "actividades",
                     valores,
                     "id_act = ?",
-                    new String[]{idAct}
+                    new String[]{idAct.trim()}
             );
 
         } catch (SQLException e) {
@@ -323,17 +330,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String idAct,
             String nuevosPasosJson) {
 
+        ultimoError = "";
+
+        if (idAct == null || idAct.trim().isEmpty()) {
+            ultimoError = "El ID de la tarea está vacío.";
+            return 0;
+        }
+
         SQLiteDatabase db = getWritableDatabase();
 
         ContentValues valores = new ContentValues();
         valores.put("pasos", nuevosPasosJson);
 
-        return db.update(
-                "actividades",
-                valores,
-                "id_act = ?",
-                new String[]{idAct}
-        );
+        try {
+            return db.update(
+                    "actividades",
+                    valores,
+                    "id_act = ?",
+                    new String[]{idAct.trim()}
+            );
+
+        } catch (SQLException e) {
+            ultimoError = "Error al actualizar los pasos: "
+                    + e.getMessage();
+            return 0;
+        }
     }
 
     public boolean actualizarDatosTarea(
@@ -342,19 +363,73 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String descripAct,
             String prioridad) {
 
-        SQLiteDatabase db = getWritableDatabase();
+        ultimoError = "";
+
+        if (idAct == null || idAct.trim().isEmpty()) {
+            ultimoError = "El ID de la tarea está vacío.";
+            return false;
+        }
 
         ContentValues valores = new ContentValues();
         valores.put("nom_act", nomAct);
         valores.put("descrip_act", descripAct);
         valores.put("prioridad", prioridad);
 
-        return db.update(
-                "actividades",
-                valores,
-                "id_act = ?",
-                new String[]{idAct}
-        ) > 0;
+        SQLiteDatabase db = getWritableDatabase();
+
+        try {
+            return db.update(
+                    "actividades",
+                    valores,
+                    "id_act = ?",
+                    new String[]{idAct.trim()}
+            ) > 0;
+
+        } catch (SQLException e) {
+            ultimoError = "Error al actualizar la tarea: "
+                    + e.getMessage();
+            return false;
+        }
+    }
+
+    public boolean eliminarTarea(String idAct) {
+
+        ultimoError = "";
+
+        if (idAct == null || idAct.trim().isEmpty()) {
+            ultimoError = "El ID de la tarea está vacío.";
+            return false;
+        }
+
+        SQLiteDatabase db = getWritableDatabase();
+
+        try {
+            db.beginTransaction();
+
+            int filasEliminadas = db.delete(
+                    "actividades",
+                    "id_act = ?",
+                    new String[]{idAct.trim()}
+            );
+
+            if (filasEliminadas > 0) {
+                db.setTransactionSuccessful();
+                return true;
+            }
+
+            ultimoError = "No se encontró la tarea para eliminar.";
+            return false;
+
+        } catch (SQLException e) {
+            ultimoError = "Error al eliminar la tarea: "
+                    + e.getMessage();
+            return false;
+
+        } finally {
+            if (db.inTransaction()) {
+                db.endTransaction();
+            }
+        }
     }
 
     public Cursor obtenerTareas(String idEstudiante) {
@@ -388,7 +463,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         try (Cursor cursor = db.rawQuery(
                 consulta,
-                new String[]{idEstudiante})) {
+                new String[]{idEstudiante}
+        )) {
 
             if (cursor.moveToFirst()) {
                 int total = cursor.getInt(0);
@@ -411,7 +487,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String idEstudiante,
             String horarioJson) {
 
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
 
         ContentValues valores = new ContentValues();
         valores.put("horario", horarioJson);
@@ -423,7 +499,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{idEstudiante}
         );
     }
+
     public int contarTareasPendientes(String idEstudiante) {
+
         if (idEstudiante == null || idEstudiante.trim().isEmpty()) {
             return 0;
         }
@@ -433,19 +511,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try (Cursor cursor = db.rawQuery(
                 "SELECT COUNT(*) FROM actividades " +
                         "WHERE id_estudiante = ? AND completado = 0",
-                new String[]{idEstudiante.trim()})) {
+                new String[]{idEstudiante.trim()}
+        )) {
 
             if (cursor.moveToFirst()) {
                 return cursor.getInt(0);
             }
 
         } catch (SQLException e) {
-            ultimoError = "Error al contar tareas pendientes: " + e.getMessage();
+            ultimoError = "Error al contar tareas pendientes: "
+                    + e.getMessage();
         }
 
         return 0;
     }
-
 
     public int actualizarFotoPerfil(
             String idEstudiante,
