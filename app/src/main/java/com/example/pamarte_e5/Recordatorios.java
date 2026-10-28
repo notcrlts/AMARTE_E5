@@ -5,8 +5,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.os.Build;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,17 +14,20 @@ import java.util.Calendar;
 
 public class Recordatorios {
 
+    private static final String TAG = "Recordatorios";
+
     private static final int ID_CLASES = 100;
     private static final int ID_TAREAS = 900;
 
+    private static final String ACCION_CLASES =
+            "com.example.pamarte_e5.RECORDATORIO_CLASES";
+
+    private static final String ACCION_TAREAS =
+            "com.example.pamarte_e5.RECORDATORIO_TAREAS";
+
     private static final String[] DIAS = {
-            "Lunes",
-            "Martes",
-            "Miercoles",
-            "Jueves",
-            "Viernes",
-            "Sabado",
-            "Domingo"
+            "Lunes", "Martes", "Miercoles", "Jueves",
+            "Viernes", "Sabado", "Domingo"
     };
 
     private static final int[] DIAS_CALENDAR = {
@@ -38,13 +40,17 @@ public class Recordatorios {
             Calendar.SUNDAY
     };
 
+    // Programa los recordatorios cinco minutos después
+    // de la última clase de cada día.
     public static void programarRecordatoriosClases(
             Context contexto,
             String idEstudiante,
             JSONObject horario) {
 
-        if (idEstudiante == null || idEstudiante.trim().isEmpty()
+        if (idEstudiante == null
+                || idEstudiante.trim().isEmpty()
                 || horario == null) {
+            Log.e(TAG, "No se pudo programar: ID u horario inválido");
             return;
         }
 
@@ -59,19 +65,15 @@ public class Recordatorios {
 
             int requestCode = obtenerCodigoClase(idEstudiante, i);
 
-            PendingIntent anterior = crearPendingIntentClase(
-                    contexto,
-                    idEstudiante,
-                    DIAS[i],
-                    requestCode
-            );
+            PendingIntent pendiente = crearPendingIntentClase(
+                    contexto, idEstudiante, DIAS[i], requestCode);
 
-            // Elimina el recordatorio anterior de ese día.
-            alarmManager.cancel(anterior);
+            alarmManager.cancel(pendiente);
 
             JSONArray clases = horario.optJSONArray(DIAS[i]);
 
             if (clases == null || clases.length() == 0) {
+                Log.d(TAG, "Sin clases el día " + DIAS[i]);
                 continue;
             }
 
@@ -87,15 +89,14 @@ public class Recordatorios {
 
                 String horaFin = clase.optString("hora_fin", "");
 
-                if (horaFin.matches("\\d{2}:\\d{2}")
-                        && horaValida(horaFin)
+                if (horaValida(horaFin)
                         && horaFin.compareTo(ultimaHora) > 0) {
-
                     ultimaHora = horaFin;
                 }
             }
 
             if (ultimaHora.isEmpty()) {
+                Log.w(TAG, "No se encontró hora_fin para " + DIAS[i]);
                 continue;
             }
 
@@ -104,28 +105,55 @@ public class Recordatorios {
             int hora = Integer.parseInt(partes[0]);
             int minuto = Integer.parseInt(partes[1]);
 
-            Calendar fecha = Calendar.getInstance();
+            Calendar fecha = calcularProximaFecha(
+                    DIAS_CALENDAR[i], hora, minuto);
 
-            fecha.set(Calendar.DAY_OF_WEEK, DIAS_CALENDAR[i]);
-            fecha.set(Calendar.HOUR_OF_DAY, hora);
-            fecha.set(Calendar.MINUTE, minuto);
-            fecha.set(Calendar.SECOND, 0);
-            fecha.set(Calendar.MILLISECOND, 0);
+            long horaProgramada = fecha.getTimeInMillis();
 
-            // Recordatorio cinco minutos después de la última clase.
-            fecha.add(Calendar.MINUTE, 5);
+            Log.d(TAG, "Clase " + DIAS[i]
+                    + " | última clase: " + ultimaHora
+                    + " | aviso: " + fecha.getTime());
 
-            // Si ya pasó la hora, programa el aviso para la próxima semana.
-            if (fecha.getTimeInMillis() <= System.currentTimeMillis()) {
-                fecha.add(Calendar.WEEK_OF_YEAR, 1);
+            try {
+                alarmManager.setAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        horaProgramada,
+                        pendiente
+                );
+            } catch (SecurityException e) {
+                Log.e(TAG, "Error al programar clases", e);
             }
-
-            alarmManager.setAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    fecha.getTimeInMillis(),
-                    anterior
-            );
         }
+    }
+
+    private static Calendar calcularProximaFecha(
+            int diaObjetivo,
+            int hora,
+            int minuto) {
+
+        Calendar ahora = Calendar.getInstance();
+        Calendar fecha = Calendar.getInstance();
+
+        fecha.set(Calendar.HOUR_OF_DAY, hora);
+        fecha.set(Calendar.MINUTE, minuto);
+        fecha.set(Calendar.SECOND, 0);
+        fecha.set(Calendar.MILLISECOND, 0);
+
+        int diaActual = ahora.get(Calendar.DAY_OF_WEEK);
+
+        int diferencia = (diaObjetivo - diaActual + 7) % 7;
+
+        fecha.add(Calendar.DAY_OF_YEAR, diferencia);
+
+        // El aviso es cinco minutos después de terminar.
+        fecha.add(Calendar.MINUTE, 5);
+
+        // Si el aviso ya pasó, programarlo para la próxima semana.
+        if (fecha.getTimeInMillis() <= ahora.getTimeInMillis()) {
+            fecha.add(Calendar.DAY_OF_YEAR, 7);
+        }
+
+        return fecha;
     }
 
     private static int obtenerCodigoClase(
@@ -138,6 +166,10 @@ public class Recordatorios {
     }
 
     private static boolean horaValida(String hora) {
+
+        if (hora == null || !hora.matches("\\d{2}:\\d{2}")) {
+            return false;
+        }
 
         try {
             String[] partes = hora.split(":");
@@ -160,10 +192,9 @@ public class Recordatorios {
             int requestCode) {
 
         Intent intent = new Intent(
-                contexto,
-                RecordatoriosReceiver.class
-        );
+                contexto, RecordatoriosReceiver.class);
 
+        intent.setAction(ACCION_CLASES);
         intent.putExtra("tipo", "clases");
         intent.putExtra("idEstudiante", idEstudiante);
         intent.putExtra("dia", dia);
@@ -177,11 +208,13 @@ public class Recordatorios {
         );
     }
 
+    // Programa avisos de tareas pendientes cada 10 minutos.
     public static void programarRecordatorioTareas(
             Context contexto,
             String idEstudiante) {
 
-        if (idEstudiante == null || idEstudiante.trim().isEmpty()) {
+        if (idEstudiante == null
+                || idEstudiante.trim().isEmpty()) {
             return;
         }
 
@@ -193,53 +226,69 @@ public class Recordatorios {
         }
 
         Intent intent = new Intent(
-                contexto,
-                RecordatoriosReceiver.class
-        );
+                contexto, RecordatoriosReceiver.class);
 
+        intent.setAction(ACCION_TAREAS);
         intent.putExtra("tipo", "tareas");
         intent.putExtra("idEstudiante", idEstudiante);
 
-        int requestCodeTareas = ID_TAREAS
+        int requestCode = ID_TAREAS
                 + Math.abs(idEstudiante.hashCode() % 100000);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+        PendingIntent pendiente = PendingIntent.getBroadcast(
                 contexto,
-                requestCodeTareas,
+                requestCode,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT
                         | PendingIntent.FLAG_IMMUTABLE
         );
 
+        int tareasPendientes;
+
         DatabaseHelper db = new DatabaseHelper(contexto);
-        int pendientes;
 
         try {
-            pendientes = db.contarTareasPendientes(idEstudiante);
+            tareasPendientes =
+                    db.contarTareasPendientes(idEstudiante);
+        } catch (Exception e) {
+            Log.e(TAG, "Error al consultar tareas pendientes", e);
+            return;
         } finally {
             db.close();
         }
 
-        if (pendientes <= 0) {
-            alarmManager.cancel(pendingIntent);
+        if (tareasPendientes <= 0) {
+            alarmManager.cancel(pendiente);
+            Log.d(TAG, "Sin tareas pendientes; alarma cancelada");
             return;
         }
 
-        // Primer aviso dentro de una hora.
+        // Diez minutos desde este momento.
         long siguienteAviso = System.currentTimeMillis()
-                + 60L * 60L * 1000L;
+                + 10L * 60L * 1000L;
 
-        alarmManager.setAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                siguienteAviso,
-                pendingIntent
-        );
+        try {
+            alarmManager.setAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    siguienteAviso,
+                    pendiente
+            );
+
+            Log.d(TAG, "Aviso de tareas programado en 10 minutos");
+
+        } catch (SecurityException e) {
+            Log.e(TAG, "No se pudo programar el aviso de tareas", e);
+        }
     }
+
+    // Alarma de prueba para comprobar el receptor.
     public static boolean programarPrueba(Context contexto) {
+
         Intent intent = new Intent(
-                contexto,
-                RecordatoriosReceiver.class
-        );
+                contexto, RecordatoriosReceiver.class);
+
+        intent.setAction(
+                "com.example.pamarte_e5.RECORDATORIO_PRUEBA");
 
         intent.putExtra("tipo", "prueba");
         intent.putExtra("idEstudiante", "prueba");
@@ -262,13 +311,14 @@ public class Recordatorios {
         try {
             alarmManager.setAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
-                    System.currentTimeMillis() + 60_000L,
+                    System.currentTimeMillis() + 10_000L,
                     pendiente
             );
 
             return true;
 
         } catch (SecurityException e) {
+            Log.e(TAG, "Error en alarma de prueba", e);
             return false;
         }
     }

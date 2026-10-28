@@ -1,6 +1,7 @@
 
 package com.example.pamarte_e5;
 
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +15,7 @@ import org.json.JSONObject;
 
 public class RecordatoriosReceiver extends BroadcastReceiver {
 
-    private static final String TAG = "RecordatorioReceiver";
+    private static final String TAG = "RecordatoriosReceiver";
     private static final String CANAL = "recordatorios";
 
     @Override
@@ -29,10 +30,12 @@ public class RecordatoriosReceiver extends BroadcastReceiver {
 
         if (tipo == null || idEstudiante == null
                 || idEstudiante.trim().isEmpty()) {
+            Log.e(TAG, "Faltan datos en la alarma");
             return;
         }
 
         Usuario.crearCanalNotificaciones(context);
+
         if ("prueba".equals(tipo)) {
             mostrarNotificacion(
                     context,
@@ -42,6 +45,7 @@ public class RecordatoriosReceiver extends BroadcastReceiver {
             );
             return;
         }
+
         DatabaseHelper db = new DatabaseHelper(context);
 
         try {
@@ -52,8 +56,8 @@ public class RecordatoriosReceiver extends BroadcastReceiver {
 
                 int idNotificacion = 200
                         + Math.abs(idEstudiante.hashCode() % 10000)
-                        + (dia == null ? 0
-                        : Math.abs(dia.hashCode() % 100));
+                        + (dia == null
+                        ? 0 : Math.abs(dia.hashCode() % 100));
 
                 mostrarNotificacion(
                         context,
@@ -62,14 +66,12 @@ public class RecordatoriosReceiver extends BroadcastReceiver {
                         "Recuerda registrar las tareas que te dejaron."
                 );
 
-                // Consultar el horario actualizado del estudiante.
                 String horarioGuardado = null;
 
                 try (Cursor cursor =
                              db.obtenerDatosEstudiante(idEstudiante)) {
 
                     if (cursor != null && cursor.moveToFirst()) {
-
                         int columna = cursor.getColumnIndex("horario");
 
                         if (columna >= 0 && !cursor.isNull(columna)) {
@@ -78,7 +80,6 @@ public class RecordatoriosReceiver extends BroadcastReceiver {
                     }
                 }
 
-                // Programar los siguientes recordatorios semanales.
                 if (horarioGuardado != null
                         && !horarioGuardado.trim().isEmpty()) {
 
@@ -89,6 +90,8 @@ public class RecordatoriosReceiver extends BroadcastReceiver {
                             idEstudiante,
                             horario
                     );
+                } else {
+                    Log.w(TAG, "El estudiante no tiene horario guardado");
                 }
 
             } else if ("tareas".equals(tipo)) {
@@ -101,30 +104,31 @@ public class RecordatoriosReceiver extends BroadcastReceiver {
                     mostrarNotificacion(
                             context,
                             901 + Math.abs(
-                                    idEstudiante.hashCode() % 10000
-                            ),
+                                    idEstudiante.hashCode() % 10000),
                             "Tienes tareas pendientes",
                             "Te quedan " + pendientes
                                     + " tarea(s) por completar."
                     );
 
-                    // Programar otro aviso dentro de una hora.
+                    // Programa el siguiente aviso en 10 minutos.
+                    Recordatorios.programarRecordatorioTareas(
+                            context,
+                            idEstudiante
+                    );
+
+                } else {
+                    Log.d(TAG, "No quedan tareas pendientes");
+                    // El método de programación cancela la alarma
+                    // cuando la cantidad de pendientes es cero.
                     Recordatorios.programarRecordatorioTareas(
                             context,
                             idEstudiante
                     );
                 }
-
             }
 
         } catch (Exception e) {
-
-            Log.e(
-                    TAG,
-                    "Error al procesar el recordatorio",
-                    e
-            );
-
+            Log.e(TAG, "Error al procesar recordatorio", e);
         } finally {
             db.close();
         }
@@ -136,31 +140,46 @@ public class RecordatoriosReceiver extends BroadcastReceiver {
             String titulo,
             String mensaje) {
 
+        Intent intentAbrir = context.getPackageManager()
+                .getLaunchIntentForPackage(context.getPackageName());
+
+        PendingIntent abrirApp = null;
+
+        if (intentAbrir != null) {
+
+            intentAbrir.setFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            | Intent.FLAG_ACTIVITY_SINGLE_TOP
+            );
+
+            abrirApp = PendingIntent.getActivity(
+                    context,
+                    idNotificacion,
+                    intentAbrir,
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                            | PendingIntent.FLAG_IMMUTABLE
+            );
+        }
+
         NotificationCompat.Builder notificacion =
                 new NotificationCompat.Builder(context, CANAL)
-                        .setSmallIcon(
-                                android.R.drawable.ic_dialog_info
-                        )
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
                         .setContentTitle(titulo)
                         .setContentText(mensaje)
-                        .setPriority(
-                                NotificationCompat.PRIORITY_DEFAULT
-                        )
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
                         .setAutoCancel(true);
 
-        try {
+        if (abrirApp != null) {
+            notificacion.setContentIntent(abrirApp);
+        }
 
-            NotificationManagerCompat
-                    .from(context)
+        try {
+            NotificationManagerCompat.from(context)
                     .notify(idNotificacion, notificacion.build());
 
         } catch (SecurityException e) {
-
-            Log.w(
-                    TAG,
-                    "No se concedió permiso para las notificaciones.",
-                    e
-            );
+            Log.e(TAG, "No se pudo mostrar la notificación", e);
         }
     }
 }

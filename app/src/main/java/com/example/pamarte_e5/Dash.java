@@ -15,6 +15,8 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.util.Locale;
+import org.json.JSONObject;
+import android.widget.Toast;
 
 public class Dash extends Fragment {
 
@@ -96,13 +98,9 @@ public class Dash extends Fragment {
 
         txtNombreDash = view.findViewById(R.id.txtNombreDash);
         txtPorcentaje = view.findViewById(R.id.txtPorcentaje);
-        txtTareasPendientes =
-                view.findViewById(R.id.txtTareasPendientes);
-        txtTareasCompletadas =
-                view.findViewById(R.id.txtTareasCompletadas);
-
-        progressTareas =
-                view.findViewById(R.id.progressTareas);
+        txtTareasPendientes = view.findViewById(R.id.txtTareasPendientes);
+        txtTareasCompletadas = view.findViewById(R.id.txtTareasCompletadas);
+        progressTareas = view.findViewById(R.id.progressTareas);
 
         actualizarDashboard();
     }
@@ -111,8 +109,8 @@ public class Dash extends Fragment {
     public void onResume() {
         super.onResume();
 
-        // Recargar los datos cada vez que se vuelve al Dashboard.
         actualizarDashboard();
+        sincronizarRecordatorios();
     }
 
     private void actualizarDashboard() {
@@ -226,5 +224,59 @@ public class Dash extends Fragment {
         progressTareas = null;
 
         super.onDestroyView();
+    }
+
+    private void sincronizarRecordatorios() {
+
+        if (dbHelper == null
+                || idEstudianteActual == null
+                || idEstudianteActual.trim().isEmpty()) {
+            return;
+        }
+
+        String id = idEstudianteActual.trim();
+
+        // Programar o actualizar los recordatorios de tareas.
+        Recordatorios.programarRecordatorioTareas(
+                requireContext(),
+                id
+        );
+
+        // Recuperar el horario guardado del estudiante.
+        try (Cursor cursor = dbHelper.obtenerDatosEstudiante(id)) {
+
+            if (cursor != null && cursor.moveToFirst()) {
+
+                int columnaHorario =
+                        cursor.getColumnIndex("horario");
+
+                if (columnaHorario != -1) {
+
+                    String horarioGuardado =
+                            cursor.getString(columnaHorario);
+
+                    if (horarioGuardado != null
+                            && !horarioGuardado.trim().isEmpty()) {
+
+                        JSONObject horario =
+                                new JSONObject(horarioGuardado);
+
+                        Recordatorios.programarRecordatoriosClases(
+                                requireContext(),
+                                id,
+                                horario
+                        );
+                    }
+                }
+
+            }
+
+        } catch (Exception e) {
+            android.util.Log.e(
+                    "Dash",
+                    "Error al sincronizar recordatorios",
+                    e
+            );
+        }
     }
 }

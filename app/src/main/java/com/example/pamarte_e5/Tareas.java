@@ -33,8 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import android.app.AlertDialog;
-import android.content.SharedPreferences;
 
 public class Tareas extends Fragment {
 
@@ -413,9 +411,14 @@ public class Tareas extends Fragment {
                 ).show();
 
                 Cursor nuevoCursor =
-                        dbHelper.obtenerTareas(idEstudianteActual);
+                        dbHelper.obtenerTareas(
+                                idEstudianteActual.trim()
+                        );
 
                 tareaAdapter.actualizarCursor(nuevoCursor);
+
+                // Actualizar los recordatorios tras crear la tarea.
+                sincronizarRecordatorios();
 
                 dialog.dismiss();
 
@@ -441,11 +444,14 @@ public class Tareas extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
         actualizarListaTareas();
+        sincronizarRecordatorios();
     }
 
     @Override
     public void onDestroyView() {
+
         if (tareaAdapter != null) {
             Cursor cursor = tareaAdapter.getCursorActual();
 
@@ -462,6 +468,7 @@ public class Tareas extends Fragment {
     }
 
     private void actualizarListaTareas() {
+
         if (dbHelper == null
                 || tareaAdapter == null
                 || idEstudianteActual == null
@@ -475,4 +482,61 @@ public class Tareas extends Fragment {
         tareaAdapter.actualizarCursor(nuevoCursor);
     }
 
+    private void sincronizarRecordatorios() {
+
+        if (dbHelper == null
+                || idEstudianteActual == null
+                || idEstudianteActual.trim().isEmpty()) {
+            return;
+        }
+
+        String id = idEstudianteActual.trim();
+
+        // No programar recordatorios para estudiantes inexistentes.
+        if (!dbHelper.existeEstudiante(id)) {
+            return;
+        }
+
+        // Actualizar los avisos de tareas pendientes.
+        Recordatorios.programarRecordatorioTareas(
+                requireContext(),
+                id
+        );
+
+        // Actualizar los avisos de clases usando el horario guardado.
+        try (Cursor cursor = dbHelper.obtenerDatosEstudiante(id)) {
+
+            if (cursor != null && cursor.moveToFirst()) {
+
+                int columnaHorario =
+                        cursor.getColumnIndex("horario");
+
+                if (columnaHorario != -1) {
+
+                    String horarioGuardado =
+                            cursor.getString(columnaHorario);
+
+                    if (horarioGuardado != null
+                            && !horarioGuardado.trim().isEmpty()) {
+
+                        JSONObject horario =
+                                new JSONObject(horarioGuardado);
+
+                        Recordatorios.programarRecordatoriosClases(
+                                requireContext(),
+                                id,
+                                horario
+                        );
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            android.util.Log.e(
+                    "Tareas",
+                    "Error al sincronizar recordatorios",
+                    e
+            );
+        }
+    }
 }

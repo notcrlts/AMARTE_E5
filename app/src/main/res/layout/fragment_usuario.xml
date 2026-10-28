@@ -202,7 +202,7 @@
                 android:id="@+id/etSalonHorario"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Salón (ej. B-204)"
+                android:hint="Salón (ej. 1101)"
                 android:inputType="textCapCharacters"
                 android:singleLine="true"
                 android:textColor="#202124"

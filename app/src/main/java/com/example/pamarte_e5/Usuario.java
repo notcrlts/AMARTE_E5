@@ -199,23 +199,6 @@ public class Usuario extends Fragment {
         );
 
         prepararNotificaciones();
-        probarNotificacion();
-        boolean programada =
-                Recordatorios.programarPrueba(requireContext());
-
-        Toast.makeText(
-                requireContext(),
-                programada
-                        ? "Solicitud de alarma enviada al sistema."
-                        : "No se pudo programar la alarma.",
-                Toast.LENGTH_LONG
-        ).show();
-
-        Toast.makeText(
-                requireContext(),
-                "Prueba programada para dentro de un minuto.",
-                Toast.LENGTH_LONG
-        ).show();
         return vista;
     }
 
@@ -1288,58 +1271,6 @@ public class Usuario extends Fragment {
         btnAgregarClase = null;
 
         contenedorClases = null;
-    }
-
-    private void probarNotificacion() {
-        crearCanalNotificaciones(requireContext());
-
-        if (Build.VERSION.SDK_INT >= 33
-                && ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.POST_NOTIFICATIONS
-        ) != PackageManager.PERMISSION_GRANTED) {
-
-            Toast.makeText(
-                    requireContext(),
-                    "Primero debes conceder el permiso de notificaciones.",
-                    Toast.LENGTH_LONG
-            ).show();
-
-            return;
-        }
-
-        android.app.Notification notification =
-                new androidx.core.app.NotificationCompat.Builder(
-                        requireContext(),
-                        "recordatorios"
-                )
-                        .setSmallIcon(android.R.drawable.ic_dialog_info)
-                        .setContentTitle("Prueba de AMARTE")
-                        .setContentText("Las notificaciones funcionan.")
-                        .setPriority(
-                                androidx.core.app.NotificationCompat.PRIORITY_HIGH
-                        )
-                        .setAutoCancel(true)
-                        .build();
-
-        try {
-            androidx.core.app.NotificationManagerCompat
-                    .from(requireContext())
-                    .notify(9999, notification);
-
-            Toast.makeText(
-                    requireContext(),
-                    "Se intentó enviar la notificación de prueba.",
-                    Toast.LENGTH_SHORT
-            ).show();
-
-        } catch (SecurityException e) {
-            Toast.makeText(
-                    requireContext(),
-                    "Android bloqueó las notificaciones.",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
     }
 
 }
